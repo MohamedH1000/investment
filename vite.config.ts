@@ -9,11 +9,10 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
   },
-  plugins: [
-    react(),
-    mode === 'development' &&
-    componentTagger(),
-  ].filter(Boolean),
+  plugins: [react(), mode === "development" && componentTagger()].filter(
+    Boolean
+  ),
+  base: "https://invest.raniminvesting.com/", // or just '/' if it's the root of subdomain
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

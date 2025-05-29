@@ -116,7 +116,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-white text-right" dir="rtl">
       {/* Hero Section */}
-      <section className="bg-white py-16 px-4">
+      <section className="bg-[#BAB86C] py-16 px-4">
         <div className="max-w-6xl mx-auto">
           <div
             className={`grid lg:grid-cols-2 gap-12 items-center transition-all duration-1000 ${
@@ -206,7 +206,7 @@ const Index = () => {
       </section>
 
       {/* Benefits Section */}
-      <section className="bg-[#F7F7F7] py-16 px-4">
+      <section className="bg-[#f7f7f7] py-16 px-4">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl font-bold text-[#2C3E50] text-center mb-12">
             ما الذي ستحصل عليه داخل البرنامج؟
@@ -215,7 +215,7 @@ const Index = () => {
             {benefits.map((benefit, index) => (
               <Card
                 key={index}
-                className="bg-white hover:shadow-lg transition-all duration-300 hover:-translate-y-2 group"
+                className="bg-[#c8eeed] hover:shadow-lg transition-all duration-300 hover:-translate-y-2 group"
               >
                 <CardHeader className="text-center">
                   <div className="mx-auto mb-4 text-[#27AE60] group-hover:scale-110 transition-transform duration-300">

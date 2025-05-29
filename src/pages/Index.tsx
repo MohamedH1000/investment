@@ -215,7 +215,7 @@ const Index = () => {
             {benefits.map((benefit, index) => (
               <Card
                 key={index}
-                className="bg-[#c8eeed] hover:shadow-lg transition-all duration-300 hover:-translate-y-2 group"
+                className="bg-[#9dc5e2] hover:shadow-lg transition-all duration-300 hover:-translate-y-2 group"
               >
                 <CardHeader className="text-center">
                   <div className="mx-auto mb-4 text-[#27AE60] group-hover:scale-110 transition-transform duration-300">

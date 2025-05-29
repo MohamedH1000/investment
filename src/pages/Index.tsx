@@ -110,6 +110,7 @@ const Index = () => {
     "https://wvkdgbletxpjgqlowyjw.supabase.co/storage/v1/object/sign/investment/vedios/WhatsApp%20Video%202025-05-28%20at%2018.08.21_331d3dda.mp4?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5X2Q2OTQ4NDFjLTA4ZTMtNGViNC1hMzk3LWIwODdjY2I2ZGQxNSJ9.eyJ1cmwiOiJpbnZlc3RtZW50L3ZlZGlvcy9XaGF0c0FwcCBWaWRlbyAyMDI1LTA1LTI4IGF0IDE4LjA4LjIxXzMzMWQzZGRhLm1wNCIsImlhdCI6MTc0ODQ2ODAzOCwiZXhwIjo0MzQwNDY4MDM4fQ.SV-twryJUsOax0qzRGnnZ4-ROYQIjbftAtvcjza2iho",
     "https://wvkdgbletxpjgqlowyjw.supabase.co/storage/v1/object/sign/investment/vedios/WhatsApp%20Video%202025-05-28%20at%2018.09.14_ee9e9977.mp4?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5X2Q2OTQ4NDFjLTA4ZTMtNGViNC1hMzk3LWIwODdjY2I2ZGQxNSJ9.eyJ1cmwiOiJpbnZlc3RtZW50L3ZlZGlvcy9XaGF0c0FwcCBWaWRlbyAyMDI1LTA1LTI4IGF0IDE4LjA5LjE0X2VlOWU5OTc3Lm1wNCIsImlhdCI6MTc0ODQ2ODA1NCwiZXhwIjo0MzQwNDY4MDU0fQ.vypTsAWFPA4A1nOBp2PWSVilT6W9G4WNzjJbq0dZ2xA",
     "https://wvkdgbletxpjgqlowyjw.supabase.co/storage/v1/object/sign/investment/vedios/WhatsApp%20Video%202025-05-28%20at%2018.09.40_c3765000.mp4?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5X2Q2OTQ4NDFjLTA4ZTMtNGViNC1hMzk3LWIwODdjY2I2ZGQxNSJ9.eyJ1cmwiOiJpbnZlc3RtZW50L3ZlZGlvcy9XaGF0c0FwcCBWaWRlbyAyMDI1LTA1LTI4IGF0IDE4LjA5LjQwX2MzNzY1MDAwLm1wNCIsImlhdCI6MTc0ODQ2ODA2NCwiZXhwIjo0MzQwNDY4MDY0fQ.xSwNgQoUW0g4p7sEydCSxbjyaihpjtENcaozDBJyoBE",
+    "https://raniminvesting.com/wp-content/uploads/2025/01/WhatsApp-Video-2025-01-06-at-11.49.31_f5787cf5.mp4",
   ];
 
   return (
@@ -338,11 +339,20 @@ const Index = () => {
           <div className="bg-white p-8 rounded-lg shadow-2xl">
             <div className="text-4xl mb-4">🎁</div>
             <h2 className="text-3xl font-bold text-[#1A237E] mb-6">
-              السعر والعرض
+              هل أنت مستعد لتستثمر في حريتك المالية؟
+            </h2>
+            <h2 className="text-3xl font-bold text-[#F39C12] mb-6">
+              استثمار واحد، يغيّر طريقة تعاملك مع المال إلى الأبد
             </h2>
             <div className="space-y-6">
-              <div className="text-2xl text-[#333333]">
+              <div className="text-2xl text-[#333333] max-md:hidden">
                 💰 السعر الكامل للبرنامج:
+                <span className="text-4xl font-bold text-[#27AE60] mx-2">
+                  888 دولار
+                </span>
+              </div>
+              <div className="text-2xl text-[#333333] md:hidden">
+                💰 السعر:
                 <span className="text-4xl font-bold text-[#27AE60] mx-2">
                   888 دولار
                 </span>
@@ -351,8 +361,8 @@ const Index = () => {
                 🎁 احجز الآن لتحصل على:
               </div>
               <ul className="text-right space-y-2 text-[#333333] max-w-md mx-auto">
-                <li>• دخول مؤكد للبرنامج (عدد المقاعد محدود جداً)</li>
-                <li>• كتيبين مجاناً لوضع خطة مالية متكاملة</li>
+                <li>• دخول مؤكد للبرنامج (المقاعد محدودة جدًا)</li>
+                <li>• كتّيب مجاني لوضع خطة مالية متكاملة</li>
               </ul>
               <div className="flex gap-4 justify-center flex-wrap mt-8">
                 <Button

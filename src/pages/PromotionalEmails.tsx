@@ -1,9 +1,7 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Card,
   CardContent,
@@ -20,10 +18,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Users, Send, LogOut } from "lucide-react";
+import { Mail, Users, Send, LogOut, Eye, Code } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 
 const PromotionalEmails = () => {
   const [emailData, setEmailData] = useState({
@@ -39,8 +40,32 @@ const PromotionalEmails = () => {
     totalSubscribers: 0,
     consentedSubscribers: 0,
   });
+  const [activeTab, setActiveTab] = useState("editor");
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Rich text editor modules configuration
+  const modules = {
+    toolbar: [
+      [{ 'header': '1'}, {'header': '2'}, { 'font': [] }],
+      [{size: []}],
+      ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+      [{'list': 'ordered'}, {'list': 'bullet'}, 
+       {'indent': '-1'}, {'indent': '+1'}],
+      ['link', 'image', 'video'],
+      [{ 'align': [] }],
+      [{ 'color': [] }, { 'background': [] }],
+      ['clean']
+    ],
+  };
+
+  const formats = [
+    'header', 'font', 'size',
+    'bold', 'italic', 'underline', 'strike', 'blockquote',
+    'list', 'bullet', 'indent',
+    'link', 'image', 'video',
+    'align', 'color', 'background'
+  ];
 
   useEffect(() => {
     checkAdminAuth();
@@ -126,7 +151,6 @@ const PromotionalEmails = () => {
     setIsLoading(true);
 
     try {
-      // Send promotional email
       const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-promotional-email', {
         body: {
           subject: emailData.subject,
@@ -138,7 +162,6 @@ const PromotionalEmails = () => {
         throw emailError;
       }
 
-      // Record the email in database
       const { error: recordError } = await supabase
         .from('promotional_emails')
         .insert({
@@ -171,7 +194,7 @@ const PromotionalEmails = () => {
   };
 
   if (!isAuthenticated) {
-    return null; // Will redirect to login
+    return null;
   }
 
   return (
@@ -236,10 +259,10 @@ const PromotionalEmails = () => {
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8">
-          {/* Send Email Form */}
-          <Card>
+          {/* Enhanced Email Composer */}
+          <Card className="lg:col-span-1">
             <CardHeader>
-              <CardTitle>إرسال رسالة ترويجية جديدة</CardTitle>
+              <CardTitle>إنشاء رسالة ترويجية جديدة</CardTitle>
               <CardDescription>
                 ستُرسل هذه الرسالة إلى {stats.consentedSubscribers} مشترك موافق فقط
               </CardDescription>
@@ -256,14 +279,58 @@ const PromotionalEmails = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="content">محتوى الرسالة</Label>
-                <Textarea
-                  id="content"
-                  value={emailData.content}
-                  onChange={(e) => setEmailData({ ...emailData, content: e.target.value })}
-                  placeholder="أدخل محتوى الرسالة..."
-                  rows={6}
-                />
+                <Label>محتوى الرسالة</Label>
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="editor" className="flex items-center gap-2">
+                      <Code className="w-4 h-4" />
+                      المحرر المتقدم
+                    </TabsTrigger>
+                    <TabsTrigger value="preview" className="flex items-center gap-2">
+                      <Eye className="w-4 h-4" />
+                      معاينة
+                    </TabsTrigger>
+                    <TabsTrigger value="html" className="flex items-center gap-2">
+                      <Code className="w-4 h-4" />
+                      HTML
+                    </TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="editor" className="space-y-2">
+                    <div className="border rounded-md" style={{ direction: 'ltr' }}>
+                      <ReactQuill
+                        theme="snow"
+                        value={emailData.content}
+                        onChange={(content) => setEmailData({ ...emailData, content })}
+                        modules={modules}
+                        formats={formats}
+                        style={{ minHeight: '200px' }}
+                        placeholder="أدخل محتوى الرسالة هنا..."
+                      />
+                    </div>
+                    <div className="text-xs text-gray-500 mt-2">
+                      يمكنك استخدام <code>{'{{firstName}}'}</code> لإدراج اسم المشترك
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="preview" className="space-y-2">
+                    <div 
+                      className="border rounded-md p-4 min-h-[200px] bg-white"
+                      dangerouslySetInnerHTML={{ 
+                        __html: emailData.content.replace('{{firstName}}', 'أحمد (مثال)') 
+                      }}
+                    />
+                  </TabsContent>
+                  
+                  <TabsContent value="html" className="space-y-2">
+                    <textarea
+                      className="w-full h-48 p-3 border rounded-md font-mono text-sm"
+                      value={emailData.content}
+                      onChange={(e) => setEmailData({ ...emailData, content: e.target.value })}
+                      placeholder="أدخل كود HTML هنا..."
+                    />
+                  </TabsContent>
+                </Tabs>
               </div>
 
               <Button
@@ -327,6 +394,7 @@ const PromotionalEmails = () => {
                   <TableHead>الموضوع</TableHead>
                   <TableHead>عدد المستلمين</TableHead>
                   <TableHead>تاريخ الإرسال</TableHead>
+                  <TableHead>معاينة المحتوى</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -336,6 +404,36 @@ const PromotionalEmails = () => {
                     <TableCell>{email.sent_to_count}</TableCell>
                     <TableCell>
                       {new Date(email.created_at).toLocaleDateString('ar-EG')}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          // Show content preview in a dialog or modal
+                          const preview = window.open('', '_blank');
+                          if (preview) {
+                            preview.document.write(`
+                              <html dir="rtl">
+                                <head>
+                                  <title>معاينة الرسالة: ${email.subject}</title>
+                                  <style>
+                                    body { font-family: Arial, sans-serif; padding: 20px; }
+                                    h1 { color: #2C3E50; }
+                                  </style>
+                                </head>
+                                <body>
+                                  <h1>${email.subject}</h1>
+                                  <div>${email.content}</div>
+                                </body>
+                              </html>
+                            `);
+                            preview.document.close();
+                          }
+                        }}
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}

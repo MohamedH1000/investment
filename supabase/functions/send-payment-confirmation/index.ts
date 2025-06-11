@@ -1,6 +1,5 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,103 +12,97 @@ serve(async (req) => {
   }
 
   try {
-    const { email, paymentMethod, amount, currency, paymentId } = await req.json()
+    const requestBody = await req.json()
+    console.log('Email request received:', requestBody)
 
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    // Handle different types of emails
+    if (requestBody.isOwnerNotification) {
+      // Owner notification email
+      const { subscriberDetails } = requestBody
+      
+      const ownerEmailContent = `
+        <div style="font-family: Arial, sans-serif; direction: rtl; text-align: right;">
+          <h2>إشعار اشتراك جديد</h2>
+          <p><strong>الاسم:</strong> ${subscriberDetails.firstName} ${subscriberDetails.lastName}</p>
+          <p><strong>البريد الإلكتروني:</strong> ${subscriberDetails.email}</p>
+          <p><strong>طريقة الدفع:</strong> ${subscriberDetails.paymentMethod}</p>
+          <p><strong>الموافقة على الرسائل الترويجية:</strong> ${subscriberDetails.promotionalConsent ? 'نعم' : 'لا'}</p>
+          <p><strong>وقت التسجيل:</strong> ${new Date(subscriberDetails.timestamp).toLocaleString('ar-EG')}</p>
+          <hr>
+          <h3>New Subscription Alert</h3>
+          <p><strong>Name:</strong> ${subscriberDetails.firstName} ${subscriberDetails.lastName}</p>
+          <p><strong>Email:</strong> ${subscriberDetails.email}</p>
+          <p><strong>Payment Method:</strong> ${subscriberDetails.paymentMethod}</p>
+          <p><strong>Promotional Consent:</strong> ${subscriberDetails.promotionalConsent ? 'Yes' : 'No'}</p>
+          <p><strong>Registration Time:</strong> ${new Date(subscriberDetails.timestamp).toLocaleString('en-US')}</p>
+        </div>
+      `
 
-    // Create email content in Arabic
-    const emailSubject = 'تأكيد دفع البرنامج التدريبي للاستثمار طويل الأمد'
-    const emailContent = `
-      <div dir="rtl" style="font-family: 'Cairo', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff;">
-        <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #2C3E50; font-size: 24px; margin-bottom: 10px;">
-            مرحباً بك في البرنامج التدريبي للاستثمار!
-          </h1>
-          <p style="color: #27AE60; font-size: 18px; font-weight: bold;">
-            تم تأكيد دفعتك بنجاح ✅
+      console.log('Sending owner notification email')
+      // Here you would send the email using your SMTP configuration
+      // Replace this with actual email sending logic once SMTP is configured
+
+    } else if (requestBody.isPromotionalEmail) {
+      // Promotional email
+      const { promotionalContent, subscriberName } = requestBody
+      
+      const promotionalEmailContent = `
+        <div style="font-family: Arial, sans-serif; direction: rtl; text-align: right;">
+          <h2>مرحباً ${subscriberName}</h2>
+          <div style="margin: 20px 0;">
+            ${promotionalContent}
+          </div>
+          <hr>
+          <p style="font-size: 12px; color: #666;">
+            تم إرسال هذه الرسالة إليك لأنك وافقت على تلقي الرسائل الترويجية. 
+            إذا كنت ترغب في إلغاء الاشتراك، يرجى الاتصال بنا.
           </p>
         </div>
+      `
 
-        <div style="background-color: #ECF0F1; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-          <h3 style="color: #1A237E; margin-bottom: 15px;">تفاصيل الدفعة:</h3>
-          <p style="color: #333333; margin: 5px 0;"><strong>البريد الإلكتروني:</strong> ${email}</p>
-          <p style="color: #333333; margin: 5px 0;"><strong>طريقة الدفع:</strong> ${paymentMethod === 'stripe' ? 'بطاقة ائتمانية' : 'PayPal'}</p>
-          <p style="color: #333333; margin: 5px 0;"><strong>المبلغ:</strong> ${amount} ${currency}</p>
-          <p style="color: #333333; margin: 5px 0;"><strong>رقم المرجع:</strong> ${paymentId}</p>
+      console.log('Sending promotional email to:', requestBody.email)
+      // Here you would send the promotional email using your SMTP configuration
+
+    } else {
+      // Payment confirmation email
+      const { email, paymentMethod, amount, currency } = requestBody
+      
+      const confirmationEmailContent = `
+        <div style="font-family: Arial, sans-serif; direction: rtl; text-align: right;">
+          <h2>تأكيد الدفع</h2>
+          <p>مرحباً،</p>
+          <p>تم استلام دفعتك بنجاح!</p>
+          <p><strong>طريقة الدفع:</strong> ${paymentMethod}</p>
+          ${amount ? `<p><strong>المبلغ:</strong> ${amount} ${currency}</p>` : ''}
+          <p>شكراً لك على اشتراكك في برنامج الاستثمار طويل الأمد.</p>
+          <p>سيتم التواصل معك قريباً بتفاصيل البرنامج.</p>
+          <hr>
+          <h3>Payment Confirmation</h3>
+          <p>Hello,</p>
+          <p>Your payment has been received successfully!</p>
+          <p><strong>Payment Method:</strong> ${paymentMethod}</p>
+          ${amount ? `<p><strong>Amount:</strong> ${amount} ${currency}</p>` : ''}
+          <p>Thank you for subscribing to our investment program.</p>
+          <p>We will contact you soon with program details.</p>
         </div>
+      `
 
-        <div style="background-color: #27AE60; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
-          <h3 style="margin-bottom: 15px;">ماذا بعد؟</h3>
-          <p style="margin: 10px 0;">• ستتلقى رسالة أخرى قريباً مع تفاصيل الدخول للبرنامج</p>
-          <p style="margin: 10px 0;">• تأكد من إضافة بريدنا الإلكتروني لقائمة الآمنة</p>
-          <p style="margin: 10px 0;">• البرنامج سيبدأ قريباً وستكون من المشاركين الأوائل!</p>
-        </div>
-
-        <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ECF0F1;">
-          <p style="color: #333333; font-size: 14px;">
-            شكراً لك على ثقتك بنا<br>
-            فريق البرنامج التدريبي للاستثمار طويل الأمد
-          </p>
-        </div>
-      </div>
-    `
-
-    // In a real implementation, you would use your SMTP service here
-    // For now, we'll log the email and update the payment record
-    console.log('Sending email to:', email)
-    console.log('Subject:', emailSubject)
-    console.log('Content:', emailContent)
-
-    // Update payment record to mark email as sent
-    const { error: updateError } = await supabaseClient
-      .from('payments')
-      .update({ email_sent: true, updated_at: new Date().toISOString() })
-      .eq('id', paymentId)
-
-    if (updateError) {
-      console.error('Error updating payment record:', updateError)
+      console.log('Sending payment confirmation email to:', email)
+      // Here you would send the confirmation email using your SMTP configuration
     }
 
-    // Here you would integrate with your WordPress SMTP configuration
-    // Example structure for when you add the SMTP details:
-    /*
-    const emailData = {
-      to: email,
-      subject: emailSubject,
-      html: emailContent,
-      smtp: {
-        host: Deno.env.get('SMTP_HOST'),
-        port: Deno.env.get('SMTP_PORT'),
-        username: Deno.env.get('SMTP_USERNAME'),
-        password: Deno.env.get('SMTP_PASSWORD'),
-        secure: true
-      }
-    }
-    */
-
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: 'Email triggered successfully',
-        email: email,
-        paymentId: paymentId
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      }
-    )
+    return new Response(JSON.stringify({ 
+      success: true,
+      message: 'Email processed successfully' 
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200,
+    })
   } catch (error) {
-    console.error('Email sending error:', error)
-    return new Response(
-      JSON.stringify({ error: 'Failed to send email' }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      }
-    )
+    console.error('Email processing error:', error)
+    return new Response('Email processing error', { 
+      status: 500,
+      headers: corsHeaders 
+    })
   }
 })

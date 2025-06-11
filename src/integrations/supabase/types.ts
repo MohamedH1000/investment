@@ -17,8 +17,11 @@ export type Database = {
           email: string
           email_sent: boolean | null
           id: string
+          name: string | null
           payment_method: string
           payment_status: string | null
+          stripe_payment_id: string | null
+          subscriber_id: string | null
           updated_at: string
         }
         Insert: {
@@ -28,8 +31,11 @@ export type Database = {
           email: string
           email_sent?: boolean | null
           id?: string
+          name?: string | null
           payment_method: string
           payment_status?: string | null
+          stripe_payment_id?: string | null
+          subscriber_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -39,8 +45,79 @@ export type Database = {
           email?: string
           email_sent?: boolean | null
           id?: string
+          name?: string | null
           payment_method?: string
           payment_status?: string | null
+          stripe_payment_id?: string | null
+          subscriber_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_subscriber_id_fkey"
+            columns: ["subscriber_id"]
+            isOneToOne: false
+            referencedRelation: "subscribers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      promotional_emails: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          sent_by: string | null
+          sent_to_count: number | null
+          subject: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          sent_by?: string | null
+          sent_to_count?: number | null
+          subject: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          sent_by?: string | null
+          sent_to_count?: number | null
+          subject?: string
+        }
+        Relationships: []
+      }
+      subscribers: {
+        Row: {
+          created_at: string
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          payment_method: string | null
+          promotional_consent: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          first_name: string
+          id?: string
+          last_name: string
+          payment_method?: string | null
+          promotional_consent?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          payment_method?: string | null
+          promotional_consent?: boolean | null
           updated_at?: string
         }
         Relationships: []

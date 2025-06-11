@@ -23,20 +23,30 @@ import {
   Video,
   Play,
 } from "lucide-react";
+import SubscriptionForm from "@/components/SubscriptionForm";
 
 const Index = () => {
   const [isVisible, setIsVisible] = useState(false);
+  const [showSubscriptionForm, setShowSubscriptionForm] = useState(false);
 
   useEffect(() => {
     setIsVisible(true);
   }, []);
 
-  const handleStripePayment = () => {
-    window.open("https://buy.stripe.com/cNifZgbBz9Hoetr8Jhfbq04", "_blank");
+  const handleSubscriptionSuccess = (subscriberId: string, paymentMethod: string) => {
+    // Redirect to appropriate payment page based on method
+    if (paymentMethod === 'stripe') {
+      window.open("https://buy.stripe.com/cNifZgbBz9Hoetr8Jhfbq04", "_blank");
+    } else if (paymentMethod === 'paypal') {
+      window.open("https://www.paypal.com/ncp/payment/9B5QFENVS29PW", "_blank");
+    }
+    
+    // Hide the form after successful submission
+    setShowSubscriptionForm(false);
   };
 
-  const handlePayPalPayment = () => {
-    window.open("https://www.paypal.com/ncp/payment/9B5QFENVS29PW", "_blank");
+  const handlePaymentClick = () => {
+    setShowSubscriptionForm(true);
   };
 
   const benefits = [
@@ -113,6 +123,24 @@ const Index = () => {
     "https://raniminvesting.com/wp-content/uploads/2025/01/WhatsApp-Video-2025-01-06-at-11.49.31_f5787cf5.mp4",
   ];
 
+  if (showSubscriptionForm) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center p-4" dir="rtl">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-6">
+            <button
+              onClick={() => setShowSubscriptionForm(false)}
+              className="text-[#2C3E50] hover:text-[#F39C12] mb-4"
+            >
+              ← العودة للصفحة الرئيسية
+            </button>
+          </div>
+          <SubscriptionForm onSuccess={handleSubscriptionSuccess} />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-white text-right" dir="rtl">
       {/* Hero Section */}
@@ -134,17 +162,10 @@ const Index = () => {
               </p>
               <div className="flex gap-4 flex-wrap">
                 <Button
-                  onClick={handleStripePayment}
+                  onClick={handlePaymentClick}
                   className="bg-[#F39C12] hover:bg-[#e67e22] text-white px-8 py-6 text-lg rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg"
                 >
                   احجز مقعدك الآن
-                </Button>
-                <Button
-                  onClick={handlePayPalPayment}
-                  variant="outline"
-                  className="border-[#F39C12] text-[#F39C12] hover:bg-[#F39C12] hover:text-white px-8 py-6 text-lg rounded-lg transition-all duration-300 hover:scale-105"
-                >
-                  الدفع عبر PayPal
                 </Button>
               </div>
             </div>
@@ -366,16 +387,10 @@ const Index = () => {
               </ul>
               <div className="flex gap-4 justify-center flex-wrap mt-8">
                 <Button
-                  onClick={handleStripePayment}
+                  onClick={handlePaymentClick}
                   className="bg-[#F39C12] hover:bg-[#e67e22] text-white px-12 py-6 text-xl rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg"
                 >
-                  احجز عبر Stripe
-                </Button>
-                <Button
-                  onClick={handlePayPalPayment}
-                  className="bg-[#27AE60] hover:bg-[#229954] text-white px-12 py-6 text-xl rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg"
-                >
-                  احجز عبر PayPal
+                  احجز الآن
                 </Button>
               </div>
             </div>
@@ -444,7 +459,7 @@ const Index = () => {
           <div className="text-3xl mb-6">👇👇👇</div>
           <div className="flex gap-4 justify-center flex-wrap">
             <Button
-              onClick={handleStripePayment}
+              onClick={handlePaymentClick}
               className="bg-white text-[#F39C12] hover:bg-gray-100 px-12 py-6 text-xl rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg font-bold"
             >
               🔶 احجز مقعدك الآن
@@ -501,16 +516,10 @@ const Index = () => {
           </h2>
           <div className="flex gap-4 justify-center flex-wrap">
             <Button
-              onClick={handleStripePayment}
+              onClick={handlePaymentClick}
               className="bg-[#F39C12] hover:bg-[#e67e22] text-white px-12 py-6 text-xl rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg"
             >
-              احجز الآن - Stripe
-            </Button>
-            <Button
-              onClick={handlePayPalPayment}
-              className="bg-white text-[#27AE60] hover:bg-gray-100 px-12 py-6 text-xl rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg"
-            >
-              احجز الآن - PayPal
+              احجز الآن
             </Button>
           </div>
         </div>

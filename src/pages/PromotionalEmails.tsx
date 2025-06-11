@@ -22,7 +22,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Users, Send } from "lucide-react";
+import { Mail, Users, Send, LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const PromotionalEmails = () => {
   const [emailData, setEmailData] = useState({
@@ -32,16 +33,53 @@ const PromotionalEmails = () => {
   const [subscribers, setSubscribers] = useState([]);
   const [emailHistory, setEmailHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [adminUser, setAdminUser] = useState(null);
   const [stats, setStats] = useState({
     totalSubscribers: 0,
     consentedSubscribers: 0,
   });
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetchSubscribers();
-    fetchEmailHistory();
+    checkAdminAuth();
   }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchSubscribers();
+      fetchEmailHistory();
+    }
+  }, [isAuthenticated]);
+
+  const checkAdminAuth = () => {
+    const adminSession = localStorage.getItem('adminSession');
+    if (adminSession) {
+      const session = JSON.parse(adminSession);
+      const loginTime = new Date(session.loginTime);
+      const now = new Date();
+      const hoursSinceLogin = (now.getTime() - loginTime.getTime()) / (1000 * 60 * 60);
+      
+      // Session expires after 24 hours
+      if (hoursSinceLogin < 24) {
+        setIsAuthenticated(true);
+        setAdminUser(session);
+      } else {
+        localStorage.removeItem('adminSession');
+        navigate('/admin-login');
+      }
+    } else {
+      navigate('/admin-login');
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('adminSession');
+    setIsAuthenticated(false);
+    setAdminUser(null);
+    navigate('/admin-login');
+  };
 
   const fetchSubscribers = async () => {
     const { data, error } = await supabase
@@ -132,16 +170,36 @@ const PromotionalEmails = () => {
     }
   };
 
+  if (!isAuthenticated) {
+    return null; // Will redirect to login
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4" dir="rtl">
       <div className="max-w-7xl mx-auto space-y-8">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-[#2C3E50] mb-4">
-            إدارة الرسائل الترويجية
-          </h1>
-          <p className="text-lg text-gray-600">
-            إرسال رسائل ترويجية للمشتركين الموافقين
-          </p>
+        <div className="flex justify-between items-center">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-[#2C3E50] mb-4">
+              إدارة الرسائل الترويجية
+            </h1>
+            <p className="text-lg text-gray-600">
+              إرسال رسائل ترويجية للمشتركين الموافقين
+            </p>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-600">
+              مرحباً، {adminUser?.username}
+            </span>
+            <Button
+              onClick={handleLogout}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <LogOut className="w-4 h-4" />
+              تسجيل الخروج
+            </Button>
+          </div>
         </div>
 
         {/* Statistics Cards */}

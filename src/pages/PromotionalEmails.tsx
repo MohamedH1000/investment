@@ -47,24 +47,40 @@ const PromotionalEmails = () => {
   // Rich text editor modules configuration
   const modules = {
     toolbar: [
-      [{ 'header': '1'}, {'header': '2'}, { 'font': [] }],
-      [{size: []}],
-      ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-      [{'list': 'ordered'}, {'list': 'bullet'}, 
-       {'indent': '-1'}, {'indent': '+1'}],
-      ['link', 'image', 'video'],
-      [{ 'align': [] }],
-      [{ 'color': [] }, { 'background': [] }],
-      ['clean']
+      [{ header: "1" }, { header: "2" }, { font: [] }],
+      [{ size: [] }],
+      ["bold", "italic", "underline", "strike", "blockquote"],
+      [
+        { list: "ordered" },
+        { list: "bullet" },
+        { indent: "-1" },
+        { indent: "+1" },
+      ],
+      ["link", "image", "video"],
+      [{ align: [] }],
+      [{ color: [] }, { background: [] }],
+      ["clean"],
     ],
   };
 
   const formats = [
-    'header', 'font', 'size',
-    'bold', 'italic', 'underline', 'strike', 'blockquote',
-    'list', 'bullet', 'indent',
-    'link', 'image', 'video',
-    'align', 'color', 'background'
+    "header",
+    "font",
+    "size",
+    "bold",
+    "italic",
+    "underline",
+    "strike",
+    "blockquote",
+    "list",
+    "bullet",
+    "indent",
+    "link",
+    "image",
+    "video",
+    "align",
+    "color",
+    "background",
   ];
 
   useEffect(() => {
@@ -79,59 +95,64 @@ const PromotionalEmails = () => {
   }, [isAuthenticated]);
 
   const checkAdminAuth = () => {
-    const adminSession = localStorage.getItem('adminSession');
+    const adminSession = localStorage.getItem("adminSession");
     if (adminSession) {
       const session = JSON.parse(adminSession);
       const loginTime = new Date(session.loginTime);
       const now = new Date();
-      const hoursSinceLogin = (now.getTime() - loginTime.getTime()) / (1000 * 60 * 60);
-      
+      const hoursSinceLogin =
+        (now.getTime() - loginTime.getTime()) / (1000 * 60 * 60);
+
       // Session expires after 24 hours
       if (hoursSinceLogin < 24) {
         setIsAuthenticated(true);
         setAdminUser(session);
       } else {
-        localStorage.removeItem('adminSession');
-        navigate('/admin-login');
+        localStorage.removeItem("adminSession");
+        navigate("/admin-login");
       }
     } else {
-      navigate('/admin-login');
+      navigate("/admin-login");
     }
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('adminSession');
+    localStorage.removeItem("adminSession");
     setIsAuthenticated(false);
     setAdminUser(null);
-    navigate('/admin-login');
+    navigate("/admin-login");
   };
 
   const fetchSubscribers = async () => {
     const { data, error } = await supabase
-      .from('subscribers')
-      .select('*')
-      .order('created_at', { ascending: false });
+      .from("subscribers")
+      .select("*")
+      .order("created_at", { ascending: false });
 
     if (error) {
-      console.error('Error fetching subscribers:', error);
+      console.error("Error fetching subscribers:", error);
       return;
     }
-
-    setSubscribers(data || []);
+    const filteredSubscribers = (data || []).filter(
+      (sub) => sub.email !== "mohammedhisham115@gmail.com"
+    );
+    setSubscribers(filteredSubscribers);
     setStats({
-      totalSubscribers: data?.length || 0,
-      consentedSubscribers: data?.filter(sub => sub.promotional_consent)?.length || 0,
+      totalSubscribers: filteredSubscribers?.length || 0,
+      consentedSubscribers:
+        filteredSubscribers?.filter((sub) => sub.promotional_consent)?.length ||
+        0,
     });
   };
 
   const fetchEmailHistory = async () => {
     const { data, error } = await supabase
-      .from('promotional_emails')
-      .select('*')
-      .order('created_at', { ascending: false });
+      .from("promotional_emails")
+      .select("*")
+      .order("created_at", { ascending: false });
 
     if (error) {
-      console.error('Error fetching email history:', error);
+      console.error("Error fetching email history:", error);
       return;
     }
 
@@ -151,19 +172,20 @@ const PromotionalEmails = () => {
     setIsLoading(true);
 
     try {
-      const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-promotional-email', {
-        body: {
-          subject: emailData.subject,
-          content: emailData.content,
-        }
-      });
+      const { data: emailResult, error: emailError } =
+        await supabase.functions.invoke("send-promotional-email", {
+          body: {
+            subject: emailData.subject,
+            content: emailData.content,
+          },
+        });
 
       if (emailError) {
         throw emailError;
       }
 
       const { error: recordError } = await supabase
-        .from('promotional_emails')
+        .from("promotional_emails")
         .insert({
           subject: emailData.subject,
           content: emailData.content,
@@ -171,7 +193,7 @@ const PromotionalEmails = () => {
         });
 
       if (recordError) {
-        console.error('Error recording email:', recordError);
+        console.error("Error recording email:", recordError);
       }
 
       toast({
@@ -182,7 +204,7 @@ const PromotionalEmails = () => {
       setEmailData({ subject: "", content: "" });
       fetchEmailHistory();
     } catch (error) {
-      console.error('Error sending email:', error);
+      console.error("Error sending email:", error);
       toast({
         title: "خطأ في الإرسال",
         description: "حدث خطأ أثناء إرسال الرسالة",
@@ -229,7 +251,9 @@ const PromotionalEmails = () => {
         <div className="grid md:grid-cols-3 gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">إجمالي المشتركين</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                إجمالي المشتركين
+              </CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -239,11 +263,15 @@ const PromotionalEmails = () => {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">موافقين على الرسائل</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                موافقين على الرسائل
+              </CardTitle>
               <Mail className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-[#27AE60]">{stats.consentedSubscribers}</div>
+              <div className="text-2xl font-bold text-[#27AE60]">
+                {stats.consentedSubscribers}
+              </div>
             </CardContent>
           </Card>
 
@@ -264,7 +292,8 @@ const PromotionalEmails = () => {
             <CardHeader>
               <CardTitle>إنشاء رسالة ترويجية جديدة</CardTitle>
               <CardDescription>
-                ستُرسل هذه الرسالة إلى {stats.consentedSubscribers} مشترك موافق فقط
+                ستُرسل هذه الرسالة إلى {stats.consentedSubscribers} مشترك موافق
+                فقط
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -273,60 +302,86 @@ const PromotionalEmails = () => {
                 <Input
                   id="subject"
                   value={emailData.subject}
-                  onChange={(e) => setEmailData({ ...emailData, subject: e.target.value })}
+                  onChange={(e) =>
+                    setEmailData({ ...emailData, subject: e.target.value })
+                  }
                   placeholder="أدخل موضوع الرسالة"
                 />
               </div>
 
               <div className="space-y-2">
                 <Label>محتوى الرسالة</Label>
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <Tabs
+                  value={activeTab}
+                  onValueChange={setActiveTab}
+                  className="w-full"
+                >
                   <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="editor" className="flex items-center gap-2">
+                    <TabsTrigger
+                      value="editor"
+                      className="flex items-center gap-2"
+                    >
                       <Code className="w-4 h-4" />
                       المحرر المتقدم
                     </TabsTrigger>
-                    <TabsTrigger value="preview" className="flex items-center gap-2">
+                    <TabsTrigger
+                      value="preview"
+                      className="flex items-center gap-2"
+                    >
                       <Eye className="w-4 h-4" />
                       معاينة
                     </TabsTrigger>
-                    <TabsTrigger value="html" className="flex items-center gap-2">
+                    <TabsTrigger
+                      value="html"
+                      className="flex items-center gap-2"
+                    >
                       <Code className="w-4 h-4" />
                       HTML
                     </TabsTrigger>
                   </TabsList>
-                  
+
                   <TabsContent value="editor" className="space-y-2">
-                    <div className="border rounded-md" style={{ direction: 'ltr' }}>
+                    <div
+                      className="border rounded-md"
+                      style={{ direction: "ltr" }}
+                    >
                       <ReactQuill
                         theme="snow"
                         value={emailData.content}
-                        onChange={(content) => setEmailData({ ...emailData, content })}
+                        onChange={(content) =>
+                          setEmailData({ ...emailData, content })
+                        }
                         modules={modules}
                         formats={formats}
-                        style={{ minHeight: '200px' }}
+                        style={{ minHeight: "200px" }}
                         placeholder="أدخل محتوى الرسالة هنا..."
                       />
                     </div>
                     <div className="text-xs text-gray-500 mt-2">
-                      يمكنك استخدام <code>{'{{firstName}}'}</code> لإدراج اسم المشترك
+                      يمكنك استخدام <code>{"{{fullName}}"}</code> لإدراج اسم
+                      المشترك
                     </div>
                   </TabsContent>
-                  
+
                   <TabsContent value="preview" className="space-y-2">
-                    <div 
+                    <div
                       className="border rounded-md p-4 min-h-[200px] bg-white"
-                      dangerouslySetInnerHTML={{ 
-                        __html: emailData.content.replace('{{firstName}}', 'أحمد (مثال)') 
+                      dangerouslySetInnerHTML={{
+                        __html: emailData.content.replace(
+                          "{{firstName}}",
+                          "أحمد (مثال)"
+                        ),
                       }}
                     />
                   </TabsContent>
-                  
+
                   <TabsContent value="html" className="space-y-2">
                     <textarea
                       className="w-full h-48 p-3 border rounded-md font-mono text-sm"
                       value={emailData.content}
-                      onChange={(e) => setEmailData({ ...emailData, content: e.target.value })}
+                      onChange={(e) =>
+                        setEmailData({ ...emailData, content: e.target.value })
+                      }
                       placeholder="أدخل كود HTML هنا..."
                     />
                   </TabsContent>
@@ -338,7 +393,9 @@ const PromotionalEmails = () => {
                 disabled={isLoading || stats.consentedSubscribers === 0}
                 className="w-full bg-[#27AE60] hover:bg-[#229954]"
               >
-                {isLoading ? "جارٍ الإرسال..." : `إرسال إلى ${stats.consentedSubscribers} مشترك`}
+                {isLoading
+                  ? "جارٍ الإرسال..."
+                  : `إرسال إلى ${stats.consentedSubscribers} مشترك`}
               </Button>
             </CardContent>
           </Card>
@@ -367,10 +424,20 @@ const PromotionalEmails = () => {
                         <TableCell>{subscriber.email}</TableCell>
                         <TableCell>
                           <Badge
-                            variant={subscriber.promotional_consent ? "default" : "secondary"}
-                            className={subscriber.promotional_consent ? "bg-[#27AE60]" : ""}
+                            variant={
+                              subscriber.promotional_consent
+                                ? "default"
+                                : "secondary"
+                            }
+                            className={
+                              subscriber.promotional_consent
+                                ? "bg-[#27AE60]"
+                                : ""
+                            }
                           >
-                            {subscriber.promotional_consent ? "موافق" : "غير موافق"}
+                            {subscriber.promotional_consent
+                              ? "موافق"
+                              : "غير موافق"}
                           </Badge>
                         </TableCell>
                       </TableRow>
@@ -400,10 +467,12 @@ const PromotionalEmails = () => {
               <TableBody>
                 {emailHistory.map((email: any) => (
                   <TableRow key={email.id}>
-                    <TableCell className="font-medium">{email.subject}</TableCell>
+                    <TableCell className="font-medium">
+                      {email.subject}
+                    </TableCell>
                     <TableCell>{email.sent_to_count}</TableCell>
                     <TableCell>
-                      {new Date(email.created_at).toLocaleDateString('ar-EG')}
+                      {new Date(email.created_at).toLocaleDateString("ar-EG")}
                     </TableCell>
                     <TableCell>
                       <Button
@@ -411,7 +480,7 @@ const PromotionalEmails = () => {
                         size="sm"
                         onClick={() => {
                           // Show content preview in a dialog or modal
-                          const preview = window.open('', '_blank');
+                          const preview = window.open("", "_blank");
                           if (preview) {
                             preview.document.write(`
                               <html dir="rtl">

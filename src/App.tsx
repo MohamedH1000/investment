@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,6 +7,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import PromotionalEmails from "./pages/PromotionalEmails";
 import AdminLogin from "./pages/AdminLogin";
+import SendEmails from "./pages/SendPromotionalEmail";
 
 const queryClient = new QueryClient();
 
@@ -19,6 +19,8 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+
+          <Route path="/send" element={<SendEmails />} />
           <Route path="/promotional-emails" element={<PromotionalEmails />} />
           <Route path="/admin-login" element={<AdminLogin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

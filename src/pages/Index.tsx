@@ -33,15 +33,17 @@ const Index = () => {
     setIsVisible(true);
   }, []);
 
-  const handleSubscriptionSuccess = (subscriberId: string, paymentMethod: string) => {
-    // Redirect to appropriate payment page based on method
-    if (paymentMethod === 'stripe') {
-      window.open("https://buy.stripe.com/cNifZgbBz9Hoetr8Jhfbq04", "_blank");
-    } else if (paymentMethod === 'paypal') {
-      window.open("https://www.paypal.com/ncp/payment/9B5QFENVS29PW", "_blank");
+  const handleSubscriptionSuccess = (
+    subscriberId: string,
+    paymentMethod: string
+  ) => {
+    if (paymentMethod === "stripe") {
+      window.location.href = "https://buy.stripe.com/cNifZgbBz9Hoetr8Jhfbq04";
+    } else if (paymentMethod === "paypal") {
+      window.location.href = "https://www.paypal.com/ncp/payment/9B5QFENVS29PW";
     }
-    
-    // Hide the form after successful submission
+
+    // Hide the form after redirection
     setShowSubscriptionForm(false);
   };
 
@@ -125,7 +127,10 @@ const Index = () => {
 
   if (showSubscriptionForm) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center p-4" dir="rtl">
+      <div
+        className="min-h-screen bg-white flex items-center justify-center p-4"
+        dir="rtl"
+      >
         <div className="w-full max-w-md">
           <div className="text-center mb-6">
             <button

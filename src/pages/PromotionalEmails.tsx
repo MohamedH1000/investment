@@ -19,20 +19,49 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Users, Send, LogOut, Eye, Code } from "lucide-react";
+import {
+  Mail,
+  Users,
+  Send,
+  LogOut,
+  Eye,
+  Code,
+  CheckSquare,
+  Square,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+
+// Define types for better type safety
+interface Subscriber {
+  id: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  promotional_consent: boolean;
+  created_at: string;
+}
+
+interface EmailHistory {
+  id: string;
+  subject: string;
+  content: string;
+  sent_to_count: number;
+  created_at: string;
+}
 
 const PromotionalEmails = () => {
   const [emailData, setEmailData] = useState({
     subject: "",
     content: "",
   });
-  const [subscribers, setSubscribers] = useState([]);
-  const [emailHistory, setEmailHistory] = useState([]);
+  const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
+  const [emailHistory, setEmailHistory] = useState<EmailHistory[]>([]);
+  const [selectedSubscribers, setSelectedSubscribers] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [adminUser, setAdminUser] = useState(null);
@@ -215,6 +244,105 @@ const PromotionalEmails = () => {
     }
   };
 
+  // New function to send email to selected subscribers
+  const handleSendToSelected = async () => {
+    if (!emailData.subject || !emailData.content) {
+      toast({
+        title: "خطأ",
+        description: "يرجى ملء موضوع الرسالة والمحتوى",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (selectedSubscribers.length === 0) {
+      toast({
+        title: "خطأ",
+        description: "يرجى اختيار مشتركين على الأقل",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Get selected subscriber emails
+      const selectedEmails = subscribers
+        .filter((sub) => selectedSubscribers.includes(sub.id))
+        .map((sub) => sub.email);
+
+      const { data: emailResult, error: emailError } =
+        await supabase.functions.invoke("send-promotional-email", {
+          body: {
+            subject: emailData.subject,
+            content: emailData.content,
+            specificEmails: selectedEmails, // Pass specific emails to the function
+          },
+        });
+
+      if (emailError) {
+        throw emailError;
+      }
+
+      const { error: recordError } = await supabase
+        .from("promotional_emails")
+        .insert({
+          subject: emailData.subject,
+          content: emailData.content,
+          sent_to_count: selectedSubscribers.length,
+        });
+
+      if (recordError) {
+        console.error("Error recording email:", recordError);
+      }
+
+      toast({
+        title: "تم الإرسال بنجاح",
+        description: `تم إرسال الرسالة إلى ${selectedSubscribers.length} مشترك محدد`,
+      });
+
+      setEmailData({ subject: "", content: "" });
+      setSelectedSubscribers([]);
+      fetchEmailHistory();
+    } catch (error) {
+      console.error("Error sending email:", error);
+      toast({
+        title: "خطأ في الإرسال",
+        description: "حدث خطأ أثناء إرسال الرسالة",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle subscriber selection
+  const handleSubscriberSelection = (subscriberId: string) => {
+    setSelectedSubscribers((prev) =>
+      prev.includes(subscriberId)
+        ? prev.filter((id) => id !== subscriberId)
+        : [...prev, subscriberId]
+    );
+  };
+
+  // Handle select all subscribers
+  const handleSelectAll = () => {
+    if (selectedSubscribers.length === subscribers.length) {
+      setSelectedSubscribers([]);
+    } else {
+      setSelectedSubscribers(subscribers.map((sub) => sub.id));
+    }
+  };
+
+  // Handle select all consented subscribers
+  const handleSelectAllConsented = () => {
+    const consentedIds = subscribers
+      .filter((sub) => sub.promotional_consent)
+      .map((sub) => sub.id);
+    setSelectedSubscribers(consentedIds);
+  };
+
   if (!isAuthenticated) {
     return null;
   }
@@ -292,8 +420,9 @@ const PromotionalEmails = () => {
             <CardHeader>
               <CardTitle>إنشاء رسالة ترويجية جديدة</CardTitle>
               <CardDescription>
-                ستُرسل هذه الرسالة إلى {stats.consentedSubscribers} مشترك موافق
-                فقط
+                {selectedSubscribers.length > 0
+                  ? `ستُرسل هذه الرسالة إلى ${selectedSubscribers.length} مشترك محدد`
+                  : `ستُرسل هذه الرسالة إلى ${stats.consentedSubscribers} مشترك موافق فقط`}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -388,36 +517,96 @@ const PromotionalEmails = () => {
                 </Tabs>
               </div>
 
-              <Button
-                onClick={handleSendEmail}
-                disabled={isLoading || stats.consentedSubscribers === 0}
-                className="w-full bg-[#27AE60] hover:bg-[#229954]"
-              >
-                {isLoading
-                  ? "جارٍ الإرسال..."
-                  : `إرسال إلى ${stats.consentedSubscribers} مشترك`}
-              </Button>
+              <div className="space-y-2">
+                {selectedSubscribers.length > 0 ? (
+                  <Button
+                    onClick={handleSendToSelected}
+                    disabled={isLoading}
+                    className="w-full bg-[#E74C3C] hover:bg-[#C0392B]"
+                  >
+                    {isLoading
+                      ? "جارٍ الإرسال..."
+                      : `إرسال إلى ${selectedSubscribers.length} مشترك محدد`}
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleSendEmail}
+                    disabled={isLoading || stats.consentedSubscribers === 0}
+                    className="w-full bg-[#27AE60] hover:bg-[#229954]"
+                  >
+                    {isLoading
+                      ? "جارٍ الإرسال..."
+                      : `إرسال إلى ${stats.consentedSubscribers} مشترك`}
+                  </Button>
+                )}
+              </div>
             </CardContent>
           </Card>
 
           {/* Subscribers List */}
           <Card>
             <CardHeader>
-              <CardTitle>قائمة المشتركين</CardTitle>
+              <div className="flex justify-between items-center">
+                <CardTitle>قائمة المشتركين</CardTitle>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSelectAll}
+                    className="text-xs"
+                  >
+                    {selectedSubscribers.length === subscribers.length
+                      ? "إلغاء تحديد الكل"
+                      : "تحديد الكل"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSelectAllConsented}
+                    className="text-xs"
+                  >
+                    تحديد الموافقين فقط
+                  </Button>
+                </div>
+              </div>
+              {selectedSubscribers.length > 0 && (
+                <CardDescription>
+                  تم تحديد {selectedSubscribers.length} مشترك
+                </CardDescription>
+              )}
             </CardHeader>
             <CardContent>
               <div className="max-h-96 overflow-y-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-12">تحديد</TableHead>
                       <TableHead>الاسم</TableHead>
                       <TableHead>البريد الإلكتروني</TableHead>
                       <TableHead>الموافقة</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {subscribers.map((subscriber: any) => (
-                      <TableRow key={subscriber.id}>
+                    {subscribers.map((subscriber: Subscriber) => (
+                      <TableRow
+                        key={subscriber.id}
+                        className={
+                          selectedSubscribers.includes(subscriber.id)
+                            ? "bg-blue-50"
+                            : ""
+                        }
+                      >
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedSubscribers.includes(
+                              subscriber.id
+                            )}
+                            onCheckedChange={() =>
+                              handleSubscriberSelection(subscriber.id)
+                            }
+                            className="data-[state=checked]:bg-[#27AE60] data-[state=checked]:border-[#27AE60]"
+                          />
+                        </TableCell>
                         <TableCell>
                           {subscriber.first_name} {subscriber.last_name}
                         </TableCell>
@@ -465,7 +654,7 @@ const PromotionalEmails = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {emailHistory.map((email: any) => (
+                {emailHistory.map((email: EmailHistory) => (
                   <TableRow key={email.id}>
                     <TableCell className="font-medium">
                       {email.subject}

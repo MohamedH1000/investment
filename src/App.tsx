@@ -8,6 +8,7 @@ import NotFound from "./pages/NotFound";
 import PromotionalEmails from "./pages/PromotionalEmails";
 import AdminLogin from "./pages/AdminLogin";
 import SendEmails from "./pages/SendPromotionalEmail";
+import Subscription from "./pages/Subscription";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/send" element={<SendEmails />} />
           <Route path="/promotional-emails" element={<PromotionalEmails />} />
           <Route path="/admin-login" element={<AdminLogin />} />
+          <Route path="/subscription" element={<Subscription />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
